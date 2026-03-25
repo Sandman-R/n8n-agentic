@@ -1,4 +1,42 @@
 
+# # services:
+# #   postgres:
+# #     image: postgres:15
+# #     container_name: n8n-postgres
+# #     restart: always
+# #     environment:
+# #       POSTGRES_USER: postgres
+# #       POSTGRES_PASSWORD: postgres
+# #       POSTGRES_DB: retail
+# #     volumes:
+# #       - postgres_data:/var/lib/postgresql/data
+# #     ports:
+# #       - "5432:5432"
+
+# #   n8n:
+# #     build: .
+# #     container_name: n8n
+# #     restart: always
+# #     ports:
+# #       - "5678:5678"
+# #     environment:
+# #       - DB_TYPE=postgresdb
+# #       - DB_POSTGRESDB_HOST=postgres
+# #       - DB_POSTGRESDB_PORT=5432
+# #       - DB_POSTGRESDB_DATABASE=retail
+# #       - DB_POSTGRESDB_USER=postgres
+# #       - DB_POSTGRESDB_PASSWORD=postgres
+# #       - N8N_BASIC_AUTH_ACTIVE=false
+# #       - NODES_EXCLUDE=[]
+# #     volumes:
+# #       - n8n_data:/home/node/.n8n
+# #       - ./testFiles:/files
+# #     depends_on:
+# #       - postgres
+
+# # volumes:
+# #   postgres_data:
+# #   n8n_data:
 # services:
 #   postgres:
 #     image: postgres:15
@@ -14,7 +52,7 @@
 #       - "5432:5432"
 
 #   n8n:
-#     build: .
+#     image: docker.n8n.io/n8nio/n8n:stable
 #     container_name: n8n
 #     restart: always
 #     ports:
@@ -33,10 +71,25 @@
 #       - ./testFiles:/files
 #     depends_on:
 #       - postgres
+#       - python-api
+
+#   python-api:
+#     build: ./python-api
+#     container_name: python-api
+#     working_dir: /app
+#     command: sh -c "pip install flask pandas numpy && python app.py"
+#     volumes:
+#       - ./python-api:/app
+#       - ./testFiles:/files
+#     ports:
+#       - "8000:8000"
 
 # volumes:
 #   postgres_data:
 #   n8n_data:
+
+
+
 services:
   postgres:
     image: postgres:15
@@ -46,10 +99,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: retail
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   n8n:
     image: docker.n8n.io/n8nio/n8n:stable
@@ -58,31 +111,38 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=retail
-      - DB_POSTGRESDB_USER=postgres
-      - DB_POSTGRESDB_PASSWORD=postgres
-      - N8N_BASIC_AUTH_ACTIVE=false
-      - NODES_EXCLUDE=[]
-    volumes:
-      - n8n_data:/home/node/.n8n
-      - ./testFiles:/files
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: retail
+      DB_POSTGRESDB_USER: postgres
+      DB_POSTGRESDB_PASSWORD: postgres
+      N8N_BASIC_AUTH_ACTIVE: "false"
     depends_on:
       - postgres
       - python-api
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./testFiles:/files
 
   python-api:
     build: ./python-api
     container_name: python-api
-    working_dir: /app
-    command: sh -c "pip install flask pandas numpy && python app.py"
-    volumes:
-      - ./python-api:/app
-      - ./testFiles:/files
     ports:
       - "8000:8000"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: retail
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./testFiles:/testFiles
+      - ./outputs:/outputs
+      - ./online retail:/online retail
+      - ./clustering data:/clustering data
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:

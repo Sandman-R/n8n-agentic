@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-03-25T01:02:04",
+  "n_groups": 3,
+  "min_abs_actual": 1.0,
+  "weighted_overall_mape_0_100": 80.52499543853436,
+  "n_clusters": 5,
+  "files": {
+    "period_csv": "outputs/final_report_20260325/test_report_3period/per_cluster_period_mape_long.csv",
+    "period_wide_csv": "outputs/final_report_20260325/test_report_3period/per_cluster_period_mape_wide.csv",
+    "overall_csv": "outputs/final_report_20260325/test_report_3period/overall_mape_by_cluster.csv",
+    "compare_csv": "outputs/final_report_20260325/test_report_3period/cluster_comparison.csv",
+    "excel": "outputs/final_report_20260325/test_report_3period/test_report_3period.xlsx",
+    "comparison_chart_png": "outputs/final_report_20260325/test_report_3period/cluster_overall_mape_comparison.png",
+    "boxplots": [
+      "outputs/final_report_20260325/test_report_3period/boxplot_cluster_-2_0.png",
+      "outputs/final_report_20260325/test_report_3period/boxplot_cluster_-1_0.png",
+      "outputs/final_report_20260325/test_report_3period/boxplot_cluster_0_0.png",
+      "outputs/final_report_20260325/test_report_3period/boxplot_cluster_1_0.png",
+      "outputs/final_report_20260325/test_report_3period/boxplot_cluster_2_0.png"
+    ]
+  }
+}

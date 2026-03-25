@@ -2,4 +2,6 @@ flask
 pandas
 numpy
 scikit-learn
-matplotlib
+openpyxl
+psycopg2-binary
+sqlalchemy
