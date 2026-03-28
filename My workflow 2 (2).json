@@ -1,0 +1,342 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -640,
+        0
+      ],
+      "id": "471a01bc-b00a-4780-91a6-c80fd813b920",
+      "name": "When chat message received",
+      "webhookId": "366939b9-22df-42cb-a062-506a8ff7de18"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{\n\"Product cluster: \" + $json.result.cluster_label + \"\\n\" +\n\"History weeks: \" + $json.result.history_weeks + \"\\n\\n\" +\n\"Forecast:\\n\" +\n$json.result.predictions.map(p => \n  p.week + \": \" + p.predicted_sales\n).join(\"\\n\") +\n\"\\n\\nExplain business insight and give recommendation.\"\n}}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f765eaa6-b40d-4421-9852-658a2aadaf04",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        208
+      ],
+      "id": "50d85547-526a-4e08-b222-0caf5126e6e1",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://python-api:8000/predict/product",
+        "sendBody": true,
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={{\n{\n  \"product_id\": $json.output,\n  \"horizon\": 12\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        32,
+        0
+      ],
+      "id": "6c7e2036-aa42-489e-ae43-c01f703e5f47",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an assistant that detects product IDs.\n\nA product ID follows this pattern:\n- Alphanumeric string like: 85123A, 71053, etc.\n\nRules:\n1. If the user input contains a product ID, extract it and output ONLY the product ID.\n2. Do NOT output anything else.\n3. If no product ID is found, respond normally to the user.\n\nExamples:\nInput: \"predict sales for 85123A\"\nOutput: 85123A\n\nInput: \"hello\"\nOutput: Hello! How can I help you?"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -448,
+        0
+      ],
+      "id": "24130e97-3fcd-410b-ad59-72885e2f4f91",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        224
+      ],
+      "id": "fa7e1175-d394-436e-9e5c-717b907f7723",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $fromAI('sql_statement') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        -176,
+        192
+      ],
+      "id": "29dda0ee-37a1-4458-90a5-833f339f788e",
+      "name": "Execute a SQL query in Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "7uzJtdUMElUYKXSJ",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cecf9a75-04f4-4420-86cf-fadfe266e861",
+              "leftValue": "={{$json.output}}",
+              "rightValue": "=^[A-Za-z0-9]+$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -144,
+        32
+      ],
+      "id": "02c1717b-af52-4880-8f6a-b11955897719",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{\n{\n  \"output\": \"Sorry, I couldn't find a product ID in your input: \\\"\" \n    + $json.output + \n    \"\\\".\\n\\nPlease provide a valid product ID (e.g., 85123A).\"\n}\n}}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        160
+      ],
+      "id": "67cdb373-1cab-4e7c-8dbb-b098cd493262",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        208
+      ],
+      "id": "a71aaf67-94e0-4cc6-990c-e68a66685410",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "iBqOh24VcvNfBv0Y",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        208
+      ],
+      "id": "9eaf293c-f4d3-454c-ba89-a89ad25aa9dd",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "iBqOh24VcvNfBv0Y",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query in Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "4fcb1f14-e231-4cd7-9b29-dd0d16b696ee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aa57f9d145f1ce2cf1a5a8a1195cf65e3637ef8b968c1d858d857afb971b2b82"
+  },
+  "id": "kgVhfRhSruxt79r19qQHS",
+  "tags": []
+}
